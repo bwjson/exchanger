@@ -1,0 +1,55 @@
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  up:
+    desc: Start postgres
+    cmds:
+      - docker compose up -d
+
+  down:
+    desc: Stop postgres
+    cmds:
+      - docker compose down
+
+  run:
+    desc: Run app
+    cmds:
+      - go run ./cmd/app
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./...
+
+  fmt:
+    desc: Format Go code
+    cmds:
+      - gofmt -w cmd internal
+
+  tidy:
+    desc: Tidy Go modules
+    cmds:
+      - go mod tidy
+
+  migrate:up:
+    cmds:
+      - go run github.com/pressly/goose/v3/cmd/goose@v3.24.3 -dir migrations postgres "$POSTGRES_DSN" up
+
+  migrate:down:
+    cmds:
+      - go run github.com/pressly/goose/v3/cmd/goose@v3.24.3 -dir migrations postgres "$POSTGRES_DSN" down
+
+  migrate:status:
+    cmds:
+      - go run github.com/pressly/goose/v3/cmd/goose@v3.24.3 -dir migrations postgres "$POSTGRES_DSN" status
+
+  migrate:create:
+    cmds:
+      - go run github.com/pressly/goose/v3/cmd/goose@v3.24.3 -dir migrations create "{{.NAME}}" sql

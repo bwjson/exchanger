@@ -1,0 +1,12 @@
+log_level = "info"
+
+[http]
+port = 8080
+
+[postgres]
+max_conns = 10
+min_conns = 2
+max_conn_lifetime = "30m"
+max_conn_idle_time = "5m"
+health_check_period = "30s"
+connect_timeout = "5s"
