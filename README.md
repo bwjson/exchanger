@@ -1,4 +1,8 @@
-# Exchanger
+<p align="center">
+  <img src="docs/logo.svg" width="320" alt="Exchanger">
+</p>
+
+<h1 align="center">Exchanger</h1>
 
 Asynchronous currency rate service. A client requests a rate update for a pair, gets an id back immediately, and reads the result later. Rates are fetched in the background from [CurrencyBeacon](https://currencybeacon.com).
 
