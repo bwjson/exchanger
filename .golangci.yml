@@ -1,0 +1,39 @@
+version: "2"
+
+linters:
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errorlint
+    - funlen
+    - gocognit
+    - gocritic
+    - gosec
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - revive
+    - unconvert
+    - whitespace
+  settings:
+    funlen:
+      lines: 90
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
+    lll:
+      line-length: 140
+  exclusions:
+    presets:
+      - comments
+      - std-error-handling
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - exchanger

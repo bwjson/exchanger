@@ -13,7 +13,7 @@ import (
 )
 
 func TestLatest(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(`{"response":{"date":"2024-03-15T14:30:00Z","base":"USD","rates":{"MXN":18.5437788018}}}`))
 	}))
 	defer srv.Close()
@@ -28,7 +28,7 @@ func TestLatest(t *testing.T) {
 }
 
 func TestLatestBadStatus(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer srv.Close()

@@ -36,22 +36,26 @@ type rateResponse struct {
 }
 
 func newUpdateResponse(u entity.RateUpdate) updateResponse {
-	return updateResponse{
-		UpdateID:      u.ID,
-		Pair:          u.Pair.String(),
-		Status:        u.Status,
-		Price:         u.Price,
-		RateTimestamp: u.RateTimestamp,
-		UpdatedAt:     u.UpdatedAt,
-		Error:         u.Error,
+	resp := updateResponse{
+		UpdateID:  u.ID,
+		Pair:      u.Pair.String(),
+		Status:    u.Status,
+		Price:     u.Price,
+		UpdatedAt: u.UpdatedAt.UTC(),
+		Error:     u.Error,
 	}
+	if u.RateTimestamp != nil {
+		ts := u.RateTimestamp.UTC()
+		resp.RateTimestamp = &ts
+	}
+	return resp
 }
 
 func newRateResponse(r entity.Rate) rateResponse {
 	return rateResponse{
 		Pair:          r.Pair.String(),
 		Price:         r.Price,
-		RateTimestamp: r.RateTimestamp,
-		UpdatedAt:     r.UpdatedAt,
+		RateTimestamp: r.RateTimestamp.UTC(),
+		UpdatedAt:     r.UpdatedAt.UTC(),
 	}
 }
