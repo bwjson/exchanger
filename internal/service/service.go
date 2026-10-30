@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 
@@ -14,15 +15,22 @@ type Repository interface {
 	CreateUpdate(ctx context.Context, u entity.RateUpdate) error
 	GetUpdate(ctx context.Context, id uuid.UUID) (entity.RateUpdate, error)
 	GetLatest(ctx context.Context, pair entity.Pair) (entity.Rate, error)
+	ProcessPending(ctx context.Context, limit int, resolve func([]entity.RateUpdate) error) error
+}
+
+type RateProvider interface {
+	Latest(ctx context.Context, symbols []string) (entity.RateSnapshot, error)
 }
 
 type Service struct {
 	repo       Repository
+	provider   RateProvider
 	currencies []string
+	logger     *slog.Logger
 }
 
-func New(repo Repository, currencies []string) *Service {
-	return &Service{repo: repo, currencies: currencies}
+func New(repo Repository, provider RateProvider, currencies []string, logger *slog.Logger) *Service {
+	return &Service{repo: repo, provider: provider, currencies: currencies, logger: logger}
 }
 
 func (s *Service) CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, error) {
@@ -40,6 +48,8 @@ func (s *Service) CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, 
 	if err := s.repo.CreateUpdate(ctx, update); err != nil {
 		return uuid.Nil, err
 	}
+
+	s.logger.Info("rate update created", "update_id", id, "pair", pair.String())
 	return id, nil
 }
 

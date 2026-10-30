@@ -33,7 +33,7 @@ func Logging(logger *slog.Logger, next http.Handler) http.Handler {
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", sw.statusCode,
-			"duration", time.Since(start),
+			"duration", time.Since(start).String(),
 		)
 	})
 }

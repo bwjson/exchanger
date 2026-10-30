@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestParsePair(t *testing.T) {
-	s := New(nil, []string{"USD", "EUR", "MXN"})
+	s := New(nil, nil, []string{"USD", "EUR", "MXN"}, slog.Default())
 
 	pair, err := s.parsePair("EUR/MXN")
 
@@ -19,7 +20,7 @@ func TestParsePair(t *testing.T) {
 }
 
 func TestParsePairInvalid(t *testing.T) {
-	s := New(nil, []string{"USD", "EUR", "MXN"})
+	s := New(nil, nil, []string{"USD", "EUR", "MXN"}, slog.Default())
 
 	for _, raw := range []string{"EUR/EUR", "EUR/GBP", "eur/mxn", "EURMXN", "EUR/MXN/USD", ""} {
 		_, err := s.parsePair(raw)

@@ -18,6 +18,7 @@ type Config struct {
 	HTTP     HTTPConfig     `toml:"http"`
 	Postgres PostgresConfig `toml:"postgres"`
 	Currency CurrencyConfig `toml:"currency"`
+	Worker   WorkerConfig   `toml:"worker"`
 }
 
 type HTTPConfig struct {
@@ -39,6 +40,11 @@ type CurrencyConfig struct {
 	Timeout   time.Duration `toml:"timeout"   env:"CURRENCY_TIMEOUT"`
 	Supported []string      `toml:"supported" env:"CURRENCY_SUPPORTED" envSeparator:","`
 	APIKey    string        `toml:"-"         env:"CURRENCY_API_KEY,required"`
+}
+
+type WorkerConfig struct {
+	Interval  time.Duration `toml:"interval"   env:"WORKER_INTERVAL"`
+	BatchSize int           `toml:"batch_size" env:"WORKER_BATCH_SIZE"`
 }
 
 func Load() (*Config, error) {

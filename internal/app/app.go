@@ -6,11 +6,14 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"exchanger/internal/clients/currency"
 	"exchanger/internal/config"
 	"exchanger/internal/ports/http"
+	"exchanger/internal/ports/worker"
 	"exchanger/internal/postgres"
 	"exchanger/internal/repository/rates"
 	"exchanger/internal/service"
@@ -21,6 +24,7 @@ type App struct {
 	logger *slog.Logger
 	db     *pgxpool.Pool
 	server *http.Server
+	worker *worker.Worker
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -38,10 +42,17 @@ func New(ctx context.Context) (*App, error) {
 	}
 
 	repo := rates.New(db)
-	svc := service.New(repo, cfg.Currency.Supported)
+	provider := currency.New(cfg.Currency)
+	svc := service.New(repo, provider, cfg.Currency.Supported, logger)
 	server := http.New(cfg.ServerAddress(), svc, logger)
 
-	return &App{cfg: cfg, logger: logger, db: db, server: server}, nil
+	return &App{
+		cfg:    cfg,
+		logger: logger,
+		db:     db,
+		server: server,
+		worker: worker.New(svc, cfg.Worker, logger),
+	}, nil
 }
 
 func (a *App) Run(ctx context.Context) error {
@@ -53,6 +64,11 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	}()
 
+	var wg sync.WaitGroup
+	wg.Go(func() { a.worker.Run(ctx) })
+
 	<-ctx.Done()
-	return a.server.Shutdown()
+	err := a.server.Shutdown()
+	wg.Wait()
+	return err
 }

@@ -15,3 +15,7 @@ connect_timeout = "5s"
 base_url = "https://api.currencybeacon.com/v1"
 timeout = "5s"
 supported = ["USD", "EUR", "MXN"]
+
+[worker]
+interval = "5s"
+batch_size = 100
