@@ -14,6 +14,10 @@ type Pair struct {
 	Quote string
 }
 
+func (p Pair) String() string {
+	return p.Base + "/" + p.Quote
+}
+
 type RateUpdate struct {
 	ID            uuid.UUID
 	Pair          Pair
@@ -29,4 +33,10 @@ type Rate struct {
 	Price         decimal.Decimal
 	RateTimestamp time.Time
 	UpdatedAt     time.Time
+}
+
+type RateSnapshot struct {
+	Base      string
+	Rates     map[string]decimal.Decimal
+	Timestamp time.Time
 }

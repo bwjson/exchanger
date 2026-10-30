@@ -17,6 +17,7 @@ type Config struct {
 	LogLevel slog.Level     `toml:"log_level" env:"LOG_LEVEL"`
 	HTTP     HTTPConfig     `toml:"http"`
 	Postgres PostgresConfig `toml:"postgres"`
+	Currency CurrencyConfig `toml:"currency"`
 }
 
 type HTTPConfig struct {
@@ -31,6 +32,13 @@ type PostgresConfig struct {
 	MaxConnIdleTime   time.Duration `toml:"max_conn_idle_time"  env:"POSTGRES_MAX_CONN_IDLE_TIME"`
 	HealthCheckPeriod time.Duration `toml:"health_check_period" env:"POSTGRES_HEALTH_CHECK_PERIOD"`
 	ConnectTimeout    time.Duration `toml:"connect_timeout"     env:"POSTGRES_CONNECT_TIMEOUT"`
+}
+
+type CurrencyConfig struct {
+	BaseURL   string        `toml:"base_url"  env:"CURRENCY_BASE_URL"`
+	Timeout   time.Duration `toml:"timeout"   env:"CURRENCY_TIMEOUT"`
+	Supported []string      `toml:"supported" env:"CURRENCY_SUPPORTED" envSeparator:","`
+	APIKey    string        `toml:"-"         env:"CURRENCY_API_KEY,required"`
 }
 
 func Load() (*Config, error) {

@@ -7,11 +7,11 @@ import (
 )
 
 func (c *Controller) getLatest(w http.ResponseWriter, r *http.Request) {
-	pair := r.URL.Query().Get("pair")
-	if pair == "" {
-		response.Error(w, http.StatusBadRequest, "pair is required")
+	rate, err := c.service.GetLatest(r.Context(), r.URL.Query().Get("pair"))
+	if err != nil {
+		c.handleError(w, err)
 		return
 	}
 
-	response.Error(w, http.StatusNotImplemented, "not implemented")
+	response.JSON(w, http.StatusOK, newRateResponse(rate))
 }

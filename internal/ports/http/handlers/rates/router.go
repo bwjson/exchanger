@@ -1,11 +1,28 @@
 package rates
 
-import "net/http"
+import (
+	"context"
+	"log/slog"
+	"net/http"
 
-type Controller struct{}
+	"github.com/google/uuid"
 
-func New() *Controller {
-	return &Controller{}
+	"exchanger/internal/domain/entity"
+)
+
+type Service interface {
+	CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, error)
+	GetUpdate(ctx context.Context, id uuid.UUID) (entity.RateUpdate, error)
+	GetLatest(ctx context.Context, rawPair string) (entity.Rate, error)
+}
+
+type Controller struct {
+	service Service
+	logger  *slog.Logger
+}
+
+func New(service Service, logger *slog.Logger) *Controller {
+	return &Controller{service: service, logger: logger}
 }
 
 func (c *Controller) Init(mux *http.ServeMux) {

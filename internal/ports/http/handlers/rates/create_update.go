@@ -13,10 +13,12 @@ func (c *Controller) createUpdate(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusBadRequest, "invalid json payload")
 		return
 	}
-	if req.Pair == "" {
-		response.Error(w, http.StatusBadRequest, "pair is required")
+
+	id, err := c.service.CreateUpdate(r.Context(), req.Pair)
+	if err != nil {
+		c.handleError(w, err)
 		return
 	}
 
-	response.Error(w, http.StatusNotImplemented, "not implemented")
+	response.JSON(w, http.StatusAccepted, createUpdateResponse{UpdateID: id})
 }

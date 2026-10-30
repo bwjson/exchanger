@@ -12,6 +12,8 @@ import (
 	"exchanger/internal/config"
 	"exchanger/internal/ports/http"
 	"exchanger/internal/postgres"
+	"exchanger/internal/repository/rates"
+	"exchanger/internal/service"
 )
 
 type App struct {
@@ -35,7 +37,9 @@ func New(ctx context.Context) (*App, error) {
 		return nil, fmt.Errorf("init postgres: %w", err)
 	}
 
-	server := http.New(cfg.ServerAddress(), logger)
+	repo := rates.New(db)
+	svc := service.New(repo, cfg.Currency.Supported)
+	server := http.New(cfg.ServerAddress(), svc, logger)
 
 	return &App{cfg: cfg, logger: logger, db: db, server: server}, nil
 }

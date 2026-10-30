@@ -25,10 +25,10 @@ type Server struct {
 	logger     *slog.Logger
 }
 
-func New(addr string, logger *slog.Logger) *Server {
+func New(addr string, service rates.Service, logger *slog.Logger) *Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", health)
-	rates.New().Init(mux)
+	rates.New(service, logger).Init(mux)
 
 	return &Server{
 		httpServer: &http.Server{
