@@ -14,6 +14,8 @@ func (c *Controller) handleError(w http.ResponseWriter, err error) {
 		response.Error(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, domain.ErrNotFound):
 		response.Error(w, http.StatusNotFound, err.Error())
+	case errors.Is(err, domain.ErrIdempotencyConflict):
+		response.Error(w, http.StatusUnprocessableEntity, err.Error())
 	default:
 		c.logger.Error("request failed", "error", err)
 		response.Error(w, http.StatusInternalServerError, "internal server error")

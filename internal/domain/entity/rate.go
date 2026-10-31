@@ -19,13 +19,16 @@ func (p Pair) String() string {
 }
 
 type RateUpdate struct {
-	ID            uuid.UUID
-	Pair          Pair
-	Status        enum.UpdateStatus
-	Price         *decimal.Decimal
-	RateTimestamp *time.Time
-	Error         string
-	UpdatedAt     time.Time
+	ID             uuid.UUID
+	Pair           Pair
+	Status         enum.UpdateStatus
+	Price          *decimal.Decimal
+	RateTimestamp  *time.Time
+	Error          string
+	UpdatedAt      time.Time
+	IdempotencyKey string
+	Attempts       int
+	NextAttemptAt  time.Time
 }
 
 type Rate struct {

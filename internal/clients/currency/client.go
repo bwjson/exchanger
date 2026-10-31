@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"exchanger/internal/config"
+	"exchanger/internal/domain"
 	"exchanger/internal/domain/entity"
 )
 
@@ -40,7 +41,10 @@ func (c *Client) Latest(ctx context.Context, symbols []string) (entity.RateSnaps
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return entity.RateSnapshot{}, fmt.Errorf("get latest rates: status %d", resp.StatusCode)
+		if retryable(resp.StatusCode) {
+			return entity.RateSnapshot{}, fmt.Errorf("get latest rates: status %d", resp.StatusCode)
+		}
+		return entity.RateSnapshot{}, fmt.Errorf("%w: status %d", domain.ErrProviderRejected, resp.StatusCode)
 	}
 
 	var out latestResponse
@@ -53,4 +57,8 @@ func (c *Client) Latest(ctx context.Context, symbols []string) (entity.RateSnaps
 		Rates:     out.Response.Rates,
 		Timestamp: out.Response.Date,
 	}, nil
+}
+
+func retryable(status int) bool {
+	return status == http.StatusTooManyRequests || status >= http.StatusInternalServerError
 }

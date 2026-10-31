@@ -7,15 +7,16 @@ import (
 
 	"github.com/google/uuid"
 
+	"exchanger/internal/domain"
 	"exchanger/internal/domain/entity"
 	"exchanger/internal/domain/enum"
 )
 
 type Repository interface {
-	CreateUpdate(ctx context.Context, u entity.RateUpdate) error
+	CreateUpdate(ctx context.Context, u entity.RateUpdate) (entity.RateUpdate, error)
 	GetUpdate(ctx context.Context, id uuid.UUID) (entity.RateUpdate, error)
 	GetLatest(ctx context.Context, pair entity.Pair) (entity.Rate, error)
-	ProcessPending(ctx context.Context, limit int, resolve func([]entity.RateUpdate) error) error
+	ProcessPending(ctx context.Context, limit int, resolve func([]entity.RateUpdate)) error
 }
 
 type RateProvider interface {
@@ -33,7 +34,7 @@ func New(repo Repository, provider RateProvider, currencies []string, logger *sl
 	return &Service{repo: repo, provider: provider, currencies: currencies, logger: logger}
 }
 
-func (s *Service) CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, error) {
+func (s *Service) CreateUpdate(ctx context.Context, rawPair, idempotencyKey string) (uuid.UUID, error) {
 	pair, err := s.parsePair(rawPair)
 	if err != nil {
 		return uuid.Nil, err
@@ -44,13 +45,17 @@ func (s *Service) CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, 
 		return uuid.Nil, fmt.Errorf("generate update id: %w", err)
 	}
 
-	update := entity.RateUpdate{ID: id, Pair: pair, Status: enum.UpdateStatusPending}
-	if err := s.repo.CreateUpdate(ctx, update); err != nil {
+	update := entity.RateUpdate{ID: id, Pair: pair, Status: enum.UpdateStatusPending, IdempotencyKey: idempotencyKey}
+	stored, err := s.repo.CreateUpdate(ctx, update)
+	if err != nil {
 		return uuid.Nil, err
 	}
+	if stored.Pair != pair {
+		return uuid.Nil, domain.ErrIdempotencyConflict
+	}
 
-	s.logger.Info("rate update created", "update_id", id, "pair", pair.String())
-	return id, nil
+	s.logger.Info("rate update accepted", "update_id", stored.ID, "pair", pair.String())
+	return stored.ID, nil
 }
 
 func (s *Service) GetUpdate(ctx context.Context, id uuid.UUID) (entity.RateUpdate, error) {

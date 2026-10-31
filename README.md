@@ -45,7 +45,7 @@ sequenceDiagram
 
 - The queue lives in PostgreSQL. The worker takes pending updates with `SELECT ... FOR UPDATE SKIP LOCKED`, so several instances can run side by side without processing the same update twice.
 - All updates of a batch are resolved from a single provider response. The provider returns rates against USD, and any pair is derived as `quote / base`, rounded to 10 decimal places.
-- If the provider call fails, the transaction rolls back and the updates stay `pending` until the next tick.
+- If the provider call fails, the updates are retried with a growing delay (5 and 10 seconds) and become `failed` after 3 attempts. Rejected requests (4xx except 429) fail immediately.
 - Prices are `NUMERIC(20,10)` in the database, `shopspring/decimal` in Go and strings in JSON, so no floats are involved.
 - The latest rate per pair is kept in `rates` and is only overwritten by a snapshot that is not older.
 
@@ -92,6 +92,8 @@ curl "localhost:8080/api/v1/rates/latest?pair=EUR/MXN"
 The worker polls every 5 seconds, so a fresh update is `pending` until the next tick.
 
 Update status is `pending`, `done` or `failed`. Errors have the form `{"error": "..."}`: `400` for an invalid pair, id or body, `404` for an unknown update or a pair that has never been updated.
+
+Pass an `Idempotency-Key` header to make retries safe: a repeated request with the same key returns the same `update_id`, and the same key with another pair returns `422`.
 
 ## Configuration
 

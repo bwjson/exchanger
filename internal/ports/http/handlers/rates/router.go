@@ -11,7 +11,7 @@ import (
 )
 
 type Service interface {
-	CreateUpdate(ctx context.Context, rawPair string) (uuid.UUID, error)
+	CreateUpdate(ctx context.Context, rawPair, idempotencyKey string) (uuid.UUID, error)
 	GetUpdate(ctx context.Context, id uuid.UUID) (entity.RateUpdate, error)
 	GetLatest(ctx context.Context, rawPair string) (entity.Rate, error)
 }

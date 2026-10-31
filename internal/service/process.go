@@ -2,32 +2,42 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/shopspring/decimal"
 
+	"exchanger/internal/domain"
 	"exchanger/internal/domain/entity"
 	"exchanger/internal/domain/enum"
+)
+
+const (
+	maxAttempts = 3
+	retryDelay  = 5 * time.Second
 )
 
 func (s *Service) ProcessUpdates(ctx context.Context, limit int) error {
 	start := time.Now()
 	var processed, failed int
 
-	err := s.repo.ProcessPending(ctx, limit, func(updates []entity.RateUpdate) error {
+	err := s.repo.ProcessPending(ctx, limit, func(updates []entity.RateUpdate) {
 		snapshot, err := s.provider.Latest(ctx, s.currencies)
 		if err != nil {
-			return err
+			s.logger.Warn("get latest rates", "error", err)
 		}
 		for i := range updates {
-			resolve(&updates[i], snapshot)
+			if err != nil {
+				retry(&updates[i], err)
+			} else {
+				resolve(&updates[i], snapshot)
+			}
 			if updates[i].Status == enum.UpdateStatusFailed {
 				failed++
-				s.logger.Warn("rate is not available", "update_id", updates[i].ID, "pair", updates[i].Pair.String())
+				s.logger.Warn("rate update failed", "update_id", updates[i].ID, "pair", updates[i].Pair.String(), "error", updates[i].Error)
 			}
 		}
 		processed = len(updates)
-		return nil
 	})
 	if err != nil {
 		return err
@@ -37,6 +47,19 @@ func (s *Service) ProcessUpdates(ctx context.Context, limit int) error {
 		s.logger.Info("rate updates processed", "count", processed, "failed", failed, "duration", time.Since(start).String())
 	}
 	return nil
+}
+
+// retry schedules u for another attempt with an exponentially growing delay.
+// It marks u as failed when the provider rejected the request or the attempts are exhausted.
+func retry(u *entity.RateUpdate, cause error) {
+	u.Attempts++
+	if errors.Is(cause, domain.ErrProviderRejected) || u.Attempts >= maxAttempts {
+		u.Status = enum.UpdateStatusFailed
+		u.Error = "rate provider is not available"
+		return
+	}
+	u.Status = enum.UpdateStatusPending
+	u.NextAttemptAt = time.Now().Add(retryDelay << (u.Attempts - 1))
 }
 
 // resolve applies the snapshot to u: it records the cross rate and marks u as done,

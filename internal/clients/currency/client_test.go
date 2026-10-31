@@ -10,6 +10,7 @@ import (
 
 	"exchanger/internal/clients/currency"
 	"exchanger/internal/config"
+	"exchanger/internal/domain"
 )
 
 func TestLatest(t *testing.T) {
@@ -27,7 +28,7 @@ func TestLatest(t *testing.T) {
 	require.Equal(t, "18.5437788018", snapshot.Rates["MXN"].String())
 }
 
-func TestLatestBadStatus(t *testing.T) {
+func TestLatestRejected(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -37,5 +38,19 @@ func TestLatestBadStatus(t *testing.T) {
 
 	_, err := client.Latest(context.Background(), []string{"MXN"})
 
+	require.ErrorIs(t, err, domain.ErrProviderRejected)
+}
+
+func TestLatestRetryable(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+	}))
+	defer srv.Close()
+
+	client := currency.New(config.CurrencyConfig{BaseURL: srv.URL})
+
+	_, err := client.Latest(context.Background(), []string{"MXN"})
+
 	require.Error(t, err)
+	require.NotErrorIs(t, err, domain.ErrProviderRejected)
 }
