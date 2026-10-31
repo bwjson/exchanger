@@ -1,0 +1,165 @@
+basePath: /
+definitions:
+  rates.createUpdateRequest:
+    properties:
+      pair:
+        example: EUR/MXN
+        type: string
+    type: object
+  rates.createUpdateResponse:
+    properties:
+      update_id:
+        format: uuid
+        type: string
+    type: object
+  rates.rateResponse:
+    properties:
+      pair:
+        example: EUR/MXN
+        type: string
+      price:
+        example: "20.9710769854"
+        type: string
+      rate_timestamp:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  rates.updateResponse:
+    properties:
+      error:
+        type: string
+      pair:
+        example: EUR/MXN
+        type: string
+      price:
+        example: "20.9710769854"
+        type: string
+      rate_timestamp:
+        type: string
+      status:
+        enum:
+        - pending
+        - done
+        - failed
+        type: string
+      update_id:
+        format: uuid
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Asynchronous currency rate service.
+  title: Exchanger API
+  version: "1.0"
+paths:
+  /api/v1/rates/latest:
+    get:
+      parameters:
+      - description: Currency pair
+        example: EUR/MXN
+        in: query
+        name: pair
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rates.rateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get the last known rate of a pair
+      tags:
+      - rates
+  /api/v1/rates/updates:
+    post:
+      consumes:
+      - application/json
+      description: Creates an update for a pair and returns its id. The rate is fetched
+        in the background.
+      parameters:
+      - description: A repeated key returns the same update_id
+        in: header
+        maxLength: 255
+        name: Idempotency-Key
+        type: string
+      - description: Currency pair
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/rates.createUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/rates.createUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Request a rate update
+      tags:
+      - rates
+  /api/v1/rates/updates/{id}:
+    get:
+      parameters:
+      - description: Update id
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rates.updateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get an update by id
+      tags:
+      - rates
+swagger: "2.0"

@@ -68,6 +68,8 @@ docker compose up --build   # or in Docker
 
 ## API
 
+Swagger UI is available at <http://localhost:8080/swagger/index.html>. After changing the annotations, regenerate it with `task docs`.
+
 A pair is written as `BASE/QUOTE`: the price is how many units of `QUOTE` one unit of `BASE` costs.
 
 | Method | Path | Description |

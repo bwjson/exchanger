@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+
 	"exchanger/internal/ports/http/handlers/rates"
 	"exchanger/internal/ports/http/middlewares"
 )
@@ -28,6 +30,7 @@ type Server struct {
 func New(addr string, service rates.Service, logger *slog.Logger) *Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", health)
+	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 	rates.New(service, logger).Init(mux)
 
 	return &Server{

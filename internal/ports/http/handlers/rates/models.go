@@ -11,26 +11,26 @@ import (
 )
 
 type createUpdateRequest struct {
-	Pair string `json:"pair"` // "EUR/MXN"
+	Pair string `json:"pair" example:"EUR/MXN"`
 }
 
 type createUpdateResponse struct {
-	UpdateID uuid.UUID `json:"update_id"`
+	UpdateID uuid.UUID `json:"update_id" swaggertype:"string" format:"uuid"`
 }
 
 type updateResponse struct {
-	UpdateID      uuid.UUID         `json:"update_id"`
-	Pair          string            `json:"pair"`
-	Status        enum.UpdateStatus `json:"status"`
-	Price         *decimal.Decimal  `json:"price"`
+	UpdateID      uuid.UUID         `json:"update_id" swaggertype:"string" format:"uuid"`
+	Pair          string            `json:"pair" example:"EUR/MXN"`
+	Status        enum.UpdateStatus `json:"status" swaggertype:"string" enums:"pending,done,failed"`
+	Price         *decimal.Decimal  `json:"price" swaggertype:"string" example:"20.9710769854"`
 	RateTimestamp *time.Time        `json:"rate_timestamp"`
 	UpdatedAt     time.Time         `json:"updated_at"`
 	Error         string            `json:"error,omitempty"`
 }
 
 type rateResponse struct {
-	Pair          string          `json:"pair"`
-	Price         decimal.Decimal `json:"price"`
+	Pair          string          `json:"pair" example:"EUR/MXN"`
+	Price         decimal.Decimal `json:"price" swaggertype:"string" example:"20.9710769854"`
 	RateTimestamp time.Time       `json:"rate_timestamp"`
 	UpdatedAt     time.Time       `json:"updated_at"`
 }

@@ -7,8 +7,13 @@ import (
 	"syscall"
 
 	"exchanger/internal/app"
+	_ "exchanger/internal/docs"
 )
 
+// @title Exchanger API
+// @version 1.0
+// @description Asynchronous currency rate service.
+// @BasePath /
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
