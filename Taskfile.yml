@@ -11,7 +11,7 @@ tasks:
   up:
     desc: Start postgres
     cmds:
-      - docker compose up -d
+      - docker compose up -d postgres
 
   down:
     desc: Stop postgres

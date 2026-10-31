@@ -57,7 +57,13 @@ Requirements: Go 1.25, Docker, [Task](https://taskfile.dev) and a free [Currency
 cp .env.example .env   # set CURRENCY_API_KEY
 task up                # start PostgreSQL
 task migrate:up        # apply migrations
-task run               # start the service on :8080
+```
+
+Then start the service on `:8080`, locally or in Docker:
+
+```bash
+task run                    # locally
+docker compose up --build   # or in Docker
 ```
 
 ## API
